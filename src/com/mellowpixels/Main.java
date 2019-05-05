@@ -17,12 +17,17 @@ import org.web3j.tx.Transfer;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.*;
 
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
@@ -201,21 +206,41 @@ public class Main {
 
 
     public void loadContract() throws Exception {
+        Object output = null;
+        JSONArray passObj = null;
+        String jsonStr = null;
         PasswordsBank passwordsBank = PasswordsBank
                 .load("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a",
                         this.connection, this.credentials, contractGasProvider);
 
 //        System.out.println("Making new Password Account. " + passwordsBank.newPasswordAccount().send());
-        this.printBallance();
+//        this.printBallance();
 
-        System.out.println("Adding Passwords" + passwordsBank.addNewPassword("sftp", "sftp://mellow.com", "mellow", "Sp2k68s15").send());
-        System.out.println("Adding Passwords" + passwordsBank.addNewPassword("ssh", "sftp://mellow.com", "coder", "Sp2k68s15").send());
+//        System.out.println("Adding Passwords" + passwordsBank.addNewPassword("sftp", "sftp://mellow.com", "mellow", "Sp2k68s15").send());
+//        System.out.println("Adding Passwords" + passwordsBank.addNewPassword("ssh", "sftp://mellow.com", "coder", "Sp2k68s15").send());
         this.printBallance();
 
         System.out.println("Fetching Passwords");
         RemoteCall<String> passwordsJSON = passwordsBank.getPasswords();
 
-        System.out.println(passwordsJSON.send());
+        jsonStr = passwordsJSON.send();
+//        System.out.println(jsonStr);
+
+//        output =
+        passObj = (JSONArray)new JSONParser().parse(jsonStr);
+        System.out.println("Array content");
+
+        for(int i = 0; i < passObj.size(); i++) {
+//            (JSONObject)new JSONParser().parse(passObj.get(1));
+            JSONObject jo = (JSONObject)passObj.get(i);
+            System.out.println(
+                    "resource: " + jo.get("resource") +
+                    " | login: " + jo.get("login") +
+                    " | password: " + jo.get("password"));
+        }
+
+//        System.out(passObj.get("resourceType") + ": " + passObj.get("resourceType"))
+
     }
 
 
