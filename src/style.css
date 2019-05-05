@@ -1,0 +1,6 @@
+.scene_title {
+    -fx-font-size: 1.5em;
+    -fx-text-fill: #58a;
+    -fx-font-family: 'sans-serif';
+    -fx-font-weight: 900;
+}

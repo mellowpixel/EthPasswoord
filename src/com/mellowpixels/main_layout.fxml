@@ -1,0 +1,50 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+
+<GridPane fx:controller="com.mellowpixels.Controller"
+          xmlns:fx="http://javafx.com/fxml"
+          alignment="TOP_CENTER" hgap="10" vgap="10" gridLinesVisible="false">
+
+    <padding><Insets top="20" bottom="20" left="20" right="20"></Insets></padding>
+
+    <Label GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="6" GridPane.halignment="CENTER" styleClass="scene_title">
+        <text>Add credentials.</text>
+    </Label>
+
+    <Separator GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="6"></Separator>
+
+
+    <TextField fx:id="resourceType" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
+        <promptText>Resource Type</promptText>
+    </TextField>
+
+    <TextField fx:id="resource" GridPane.rowIndex="2" GridPane.columnIndex="2" GridPane.columnSpan="4">
+        <promptText>Resource</promptText>
+    </TextField>
+
+    <TextField fx:id="login" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2">
+        <promptText>Login</promptText>
+    </TextField>
+
+    <TextField fx:id="passwordText" GridPane.rowIndex="3" GridPane.columnIndex="2" GridPane.columnSpan="2" visible="false">
+        <promptText>Password</promptText>
+    </TextField>
+    <PasswordField fx:id="password" GridPane.rowIndex="3" GridPane.columnIndex="2" GridPane.columnSpan="2">
+        <promptText>Password</promptText>
+    </PasswordField>
+
+    <Button fx:id="generatePassButton" onAction="#generatePassword" GridPane.rowIndex="3" GridPane.columnIndex="4" GridPane.halignment="RIGHT">
+        <text>Generate</text>
+    </Button>
+
+    <Button fx:id="submitButton" onAction="#submitNewCredentials" GridPane.rowIndex="3" GridPane.columnIndex="5" GridPane.halignment="RIGHT">
+        <text>Save</text>
+    </Button>
+
+</GridPane>

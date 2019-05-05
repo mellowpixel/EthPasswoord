@@ -4,16 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.admin.Admin;
-import org.web3j.protocol.admin.methods.response.PersonalUnlockAccount;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.RemoteCall;
-import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
-import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.ManagedTransaction;
-import org.web3j.tx.Transfer;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Convert;
 import org.json.simple.JSONObject;
@@ -26,8 +20,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
-public class Main {
-    private static final Logger log = LoggerFactory.getLogger(Main.class);
+public class Blockchain {
+    private static final Logger log = LoggerFactory.getLogger(Blockchain.class);
     private String etherAPIEndpoint = null;
     private Web3j connection = null;
     private Credentials credentials = null;
@@ -70,7 +64,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        Main app = new Main();
+        Blockchain app = new Blockchain();
 
 //        String walletDir = "/Users/coder/Library/Ethereum/keystore/";
         String password = "Sp2k68s151";
