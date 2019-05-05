@@ -16,7 +16,6 @@ import org.web3j.tx.ManagedTransaction;
 import org.web3j.tx.Transfer;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Convert;
-import org.web3j.utils.Numeric;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.*;
@@ -26,8 +25,6 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
@@ -35,7 +32,8 @@ public class Main {
     private Web3j connection = null;
     private Credentials credentials = null;
     private File walletFile = null;
-    ContractGasProvider contractGasProvider = new ContractGasProvider() {
+    private PasswordsBank passwordsBank = null;
+    private ContractGasProvider contractGasProvider = new ContractGasProvider() {
         @Override
         public BigInteger getGasPrice(String contractFunc) {
             return BigInteger.valueOf(200000L);
@@ -75,18 +73,18 @@ public class Main {
         Main app = new Main();
 
 //        String walletDir = "/Users/coder/Library/Ethereum/keystore/";
-        String walletDir = "/Users/coder/CODING/Etherium/node/wallet/";
         String password = "Sp2k68s151";
-
-
+        String walletDir = "/Users/coder/CODING/Etherium/node/wallet/";
         app.etherAPIEndpoint = "https://ropsten.infura.io/v3/6360239c11f64a1599fbf9655c4f0d96";
+
         app.getOrMakeWallet(password, walletDir);
         app.getCredentials(password);
         app.connect();
-        app.loadContract();
+        app.loadContract("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a");
+        app.savePasswordsToBlockchain("ftp", "ftp://mellowpoxels.com", "boss", "sdoie'>?<");
+        app.fetchPasswordsFromBlockchain();
 //        app.deployContract();
-//        app.getClientVersion();
-//        app.customTransaction(credentials);
+//        app.createNewPasswordBankAccount();
     }
 
 
@@ -127,7 +125,9 @@ public class Main {
 
 
 
-    public void printBallance() throws Exception {
+    public void printBallance()
+            throws Exception
+    {
         BigInteger wei = this.connection.ethGetBalance(this.credentials.getAddress(), DefaultBlockParameterName.LATEST)
                 .sendAsync().get().getBalance();
 
@@ -139,7 +139,9 @@ public class Main {
 
 
 
-    public String generateNewWallet(String password, String dir) throws Exception {
+    public String generateNewWallet(String password, String dir)
+            throws Exception
+    {
         String walletName = WalletUtils.generateNewWalletFile(password, new File(dir), false);
         System.out.println("New wallet created: " + dir + walletName);
 
@@ -150,7 +152,9 @@ public class Main {
 
 
 
-    public void getCredentials(String password) throws Exception {
+    public void getCredentials(String password)
+            throws Exception
+    {
         String walletpath = this.walletFile.getAbsolutePath();
         System.out.println("Loading credentials.\nWallet file: " + walletpath);
 
@@ -192,57 +196,96 @@ public class Main {
 
 
 
-    public void deployContract() throws Exception {
-        BigInteger GasPrice = null;
-        BigInteger GasLimit = null;
+    public String deployContract()
+            throws Exception
+    {
+        log.info("Deploying PasswordsBank contract.");
+
         PasswordsBank passwordsBank = PasswordsBank
                 .deploy(this.connection, this.credentials, contractGasProvider).send();
 
-        System.out.println("Deployed contract address: " + passwordsBank.getContractAddress());
+        String contractAddress = passwordsBank.getContractAddress();
+
+        log.info("Deployed contract address: " + contractAddress);
+
         this.printBallance();
+
+        return contractAddress;
     }
 
 
 
 
-    public void loadContract() throws Exception {
-        Object output = null;
-        JSONArray passObj = null;
-        String jsonStr = null;
-        PasswordsBank passwordsBank = PasswordsBank
-                .load("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a",
-                        this.connection, this.credentials, contractGasProvider);
+    public void loadContract(String contractAddress)
+            throws Exception
+    {
+        this.passwordsBank =
+                PasswordsBank.load(contractAddress,
+                        this.connection,
+                        this.credentials,
+                        contractGasProvider);
 
-//        System.out.println("Making new Password Account. " + passwordsBank.newPasswordAccount().send());
-//        this.printBallance();
+        if(!this.passwordsBank.isValid()) {
+            log.error("The PasswordsBank Contract is not valid at address:" + contractAddress);
+        }
+    }
 
-//        System.out.println("Adding Passwords" + passwordsBank.addNewPassword("sftp", "sftp://mellow.com", "mellow", "Sp2k68s15").send());
-//        System.out.println("Adding Passwords" + passwordsBank.addNewPassword("ssh", "sftp://mellow.com", "coder", "Sp2k68s15").send());
+
+
+    public TransactionReceipt createNewPasswordBankAccount()
+            throws Exception
+    {
+        log.info("Making new Password Account.");
+        TransactionReceipt txReceipt = this.passwordsBank.newPasswordAccount().send();
+
+        log.info("Transaction Receipt.");
+        log.info("Gas Used: " + txReceipt.getGasUsed().toString(10));
+
         this.printBallance();
 
-        System.out.println("Fetching Passwords");
+        return txReceipt;
+    }
+
+
+
+    public TransactionReceipt savePasswordsToBlockchain(String resourceType, String resource, String login, String password)
+            throws Exception
+    {
+        log.info("Save passwords to blockchain.");
+        TransactionReceipt txReceipt = this.passwordsBank.addNewPassword(resourceType, resource, login, password).send();
+
+        log.info("Transaction Receipt.");
+        log.info("Gas Used: " + txReceipt.getGasUsed().toString(10));
+
+        this.printBallance();
+
+        return txReceipt;
+    }
+
+
+
+    public JSONArray fetchPasswordsFromBlockchain()
+            throws Exception
+    {
+        log.debug("Fetching Passwords");
+
         RemoteCall<String> passwordsJSON = passwordsBank.getPasswords();
+        String jsonStr = passwordsJSON.send();
+        JSONArray passObj = (JSONArray) new JSONParser().parse(jsonStr);
 
-        jsonStr = passwordsJSON.send();
-//        System.out.println(jsonStr);
-
-//        output =
-        passObj = (JSONArray)new JSONParser().parse(jsonStr);
-        System.out.println("Array content");
+        log.info("Array content");
 
         for(int i = 0; i < passObj.size(); i++) {
-//            (JSONObject)new JSONParser().parse(passObj.get(1));
             JSONObject jo = (JSONObject)passObj.get(i);
             System.out.println(
-                    "resource: " + jo.get("resource") +
-                    " | login: " + jo.get("login") +
-                    " | password: " + jo.get("password"));
+                            "resource Type: "   + jo.get("resourceType") +
+                            " | resource: "     + jo.get("resource") +
+                            " | login: "        + jo.get("login") +
+                            " | password: "     + jo.get("password"));
         }
 
-//        System.out(passObj.get("resourceType") + ": " + passObj.get("resourceType"))
-
+        return passObj;
     }
-
 
 
 
@@ -250,66 +293,3 @@ public class Main {
         return fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
     }
 }
-
-/*
-public void testCreateAccountFromScratch() throws Exception {
-
-	// create new private/public key pair
-	ECKeyPair keyPair = Keys.createEcKeyPair();
-
-	BigInteger publicKey = keyPair.getPublicKey();
-	String publicKeyHex = Numeric.toHexStringWithPrefix(publicKey);
-
-	BigInteger privateKey = keyPair.getPrivateKey();
-	String privateKeyHex = Numeric.toHexStringWithPrefix(privateKey);
-
-	// create credentials + address from private/public key pair
-	Credentials credentials = Credentials.create(new ECKeyPair(privateKey, publicKey));
-	String address = credentials.getAddress();
-
-	// print resulting data of new account
-	System.out.println("private key: '" + privateKeyHex + "'");
-	System.out.println("public key: '" + publicKeyHex + "'");
-	System.out.println("address: '" + address + "'\n");
-
-	// test (1) check if it's possible to transfer funds to new address
-	BigInteger amountWei = Convert.toWei("0.131313", Convert.Unit.ETHER).toBigInteger();
-	transferWei(getCoinbase(), address, amountWei);
-
-	BigInteger balanceWei = getBalanceWei(address);
-	BigInteger nonce = getNonce(address);
-
-	assertEquals("Unexpected nonce for 'to' address", BigInteger.ZERO, nonce);
-	assertEquals("Unexpected balance for 'to' address", amountWei, balanceWei);
-
-	// test (2) funds can be transferred out of the newly created account
-	BigInteger txFees = Web3jConstants.GAS_LIMIT_ETHER_TX.multiply(Web3jConstants.GAS_PRICE);
-	RawTransaction txRaw = RawTransaction
-			.createEtherTransaction(
-					nonce,
-					Web3jConstants.GAS_PRICE,
-					Web3jConstants.GAS_LIMIT_ETHER_TX,
-					getCoinbase(),
-					amountWei.subtract(txFees));
-
-	// sign raw transaction using the sender's credentials
-	byte[] txSignedBytes = TransactionEncoder.signMessage(txRaw, credentials);
-	String txSigned = Numeric.toHexString(txSignedBytes);
-
-	// send the signed transaction to the ethereum client
-	EthSendTransaction ethSendTx = web3j
-			.ethSendRawTransaction(txSigned)
-			.sendAsync()
-			.get();
-
-	Error error = ethSendTx.getError();
-	String txHash = ethSendTx.getTransactionHash();
-	assertNull(error);
-	assertFalse(txHash.isEmpty());
-
-	waitForReceipt(txHash);
-
-	assertEquals("Unexpected nonce for 'to' address", BigInteger.ONE, getNonce(address));
-	assertTrue("Balance for 'from' address too large: " + getBalanceWei(address), getBalanceWei(address).compareTo(txFees) < 0);
-}
-*/
