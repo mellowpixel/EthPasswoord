@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="364367b7-7628-48ec-8183-e928026c5104" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/com/mellowpixels/Cryptograph.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/mellowpixels/Blockchain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/mellowpixels/Blockchain.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/mellowpixels/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/mellowpixels/Controller.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/mellowpixels/Encryption.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/mellowpixels/LoginController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/mellowpixels/LoginController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/mellowpixels/main_layout.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/mellowpixels/main_layout.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/mellowpixels/Cryptograph.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/mellowpixels/Cryptograph.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -293,7 +286,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1557172394548" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1557172635197" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
