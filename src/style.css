@@ -1,6 +1,13 @@
 .scene_title {
-    -fx-font-size: 1.5em;
+    -fx-font-size: 0.9em;
     -fx-text-fill: #58a;
+    -fx-font-family: 'sans-serif';
+    -fx-font-weight: 900;
+}
+
+.status_text {
+    -fx-font-size: 0.9em;
+    -fx-text-fill: #5a8;
     -fx-font-family: 'sans-serif';
     -fx-font-weight: 900;
 }

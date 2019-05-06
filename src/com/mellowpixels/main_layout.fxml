@@ -27,43 +27,55 @@
     </columnConstraints>
     <padding><Insets top="20" bottom="20" left="20" right="20"></Insets></padding>
 
-    <Label fx:id="ballanceLabel" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="10" GridPane.halignment="LEFT" styleClass="scene_title">
+    <Label fx:id="ballanceLabel" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="5" GridPane.halignment="LEFT" styleClass="scene_title">
         <text>BALLANCE: </text>
     </Label>
 
-    <Separator GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="10"></Separator>
+    <Label fx:id="addressLabel" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="5" GridPane.halignment="LEFT" styleClass="scene_title">
+        <text>BALLANCE: </text>
+    </Label>
+
+    <Label fx:id="networkLabel" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="5" GridPane.halignment="LEFT" styleClass="scene_title">
+        <text>BALLANCE: </text>
+    </Label>
+
+    <Label fx:id="statusLabel" GridPane.rowIndex="0" GridPane.columnIndex="6" GridPane.columnSpan="4" GridPane.halignment="RIGHT" styleClass="status_text">
+        <text>Example</text>
+    </Label>
+
+    <Separator GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="10"></Separator>
 
 
-    <TextField fx:id="resourceType" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
+    <TextField fx:id="resourceType" GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="2">
         <promptText>Resource Name</promptText>
     </TextField>
 
-    <TextField fx:id="resource" GridPane.rowIndex="2" GridPane.columnIndex="2" GridPane.columnSpan="4">
+    <TextField fx:id="resource" GridPane.rowIndex="4" GridPane.columnIndex="2" GridPane.columnSpan="4">
         <promptText>Resource</promptText>
     </TextField>
 
-    <TextField fx:id="login" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2">
+    <TextField fx:id="login" GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="2">
         <promptText>Login</promptText>
     </TextField>
 
-    <TextField fx:id="passwordText" GridPane.rowIndex="3" GridPane.columnIndex="2" GridPane.columnSpan="2" visible="false">
+    <TextField fx:id="passwordText" GridPane.rowIndex="5" GridPane.columnIndex="2" GridPane.columnSpan="2" visible="false">
         <promptText>Password</promptText>
     </TextField>
-    <PasswordField fx:id="password" GridPane.rowIndex="3" GridPane.columnIndex="2" GridPane.columnSpan="2">
+    <PasswordField fx:id="password" GridPane.rowIndex="5" GridPane.columnIndex="2" GridPane.columnSpan="2">
         <promptText>Password</promptText>
     </PasswordField>
 
-    <Button fx:id="generatePassButton" onAction="#generatePassword" GridPane.rowIndex="3" GridPane.columnIndex="4" GridPane.halignment="RIGHT">
+    <Button fx:id="generatePassButton" onAction="#generatePassword" GridPane.rowIndex="5" GridPane.columnIndex="4" GridPane.halignment="RIGHT">
         <text>Generate</text>
     </Button>
 
-    <Button fx:id="submitButton" onAction="#submitNewCredentials" GridPane.rowIndex="3" GridPane.columnIndex="5" GridPane.halignment="RIGHT">
+    <Button fx:id="submitButton" onAction="#submitNewCredentials" GridPane.rowIndex="5" GridPane.columnIndex="5" GridPane.halignment="RIGHT">
         <text>Save</text>
     </Button>
 
     <Button fx:id="lockScrButton"
             onAction="#lockScreen"
-            GridPane.rowIndex="2"
+            GridPane.rowIndex="4"
             GridPane.columnIndex="8"
             GridPane.rowSpan="2"
             GridPane.columnSpan="2"
@@ -74,8 +86,8 @@
             GridPane.halignment="RIGHT"><text>Lock Screen</text>
     </Button>
 
-    <Separator GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="6"></Separator>
+    <Separator GridPane.rowIndex="6" GridPane.columnIndex="0" GridPane.columnSpan="6"></Separator>
 
-    <TableView fx:id="passwordsTable" GridPane.rowIndex="6" GridPane.columnSpan="10" ></TableView>
+    <TableView fx:id="passwordsTable" GridPane.rowIndex="8" GridPane.columnSpan="10" ></TableView>
 
 </GridPane>

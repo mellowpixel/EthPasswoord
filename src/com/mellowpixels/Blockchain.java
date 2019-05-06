@@ -19,12 +19,15 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 
 public class Blockchain {
     private static final Logger log = LoggerFactory.getLogger(Blockchain.class);
     private String etherAPIEndpoint = "https://ropsten.infura.io/v3/6360239c11f64a1599fbf9655c4f0d96";
+//    private String etherAPIEndpoint = "http://127.0.0.1:8545";
+
 //    private String etherAPIEndpoint = null;
-    private Web3j connection = null;
+    public Web3j connection = null;
     public  Credentials credentials = null;
     private boolean authenticated = false;
     private File walletFile = null;
@@ -51,6 +54,7 @@ public class Blockchain {
         }
     };
 
+
     /*
     * METAMASK
     * oblige ocean glimpse cluster pond unfair guide fault tip flock arrow once
@@ -61,26 +65,7 @@ public class Blockchain {
     * 
     * └─▪ ./geth --rpcapi personal,db,eth,net,web3 --syncmode=fast --rpc --testnet --keystore ./wallet --datadir ./chaindata
     *
-    * Contract: 0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a
     */
-
-    public static void main(String[] args) throws Exception {
-
-        Blockchain app = new Blockchain();
-
-//        String walletDir = "/Users/coder/Library/Ethereum/keystore/";
-        String password = "Sp2k68s151";
-        String walletDir = "/Users/coder/CODING/Etherium/node/wallet/";
-
-        app.getOrMakeWallet(password, walletDir);
-        app.getCredentials(password);
-        app.connect();
-        app.loadContract("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a");
-        app.savePasswordsToBlockchain("ftp", "ftp://mellowpoxels.com", "boss", "sdoie'>?<");
-        app.fetchPasswordsFromBlockchain();
-//        app.deployContract();
-//        app.createNewPasswordBankAccount();
-    }
 
 
 
@@ -176,13 +161,13 @@ public class Blockchain {
             this.credentials = WalletUtils.loadCredentials(password, walletpath);
             this.authenticated = true;
             System.out.println("Address: " + credentials.getAddress());
-            System.out.println("Public: " + credentials.getEcKeyPair().getPublicKey().toString(16));
-            System.out.println("Private: " + credentials.getEcKeyPair().getPrivateKey().toString(16));
+//            System.out.println("Public: " + credentials.getEcKeyPair().getPublicKey().toString(16));
+//            System.out.println("Private: " + credentials.getEcKeyPair().getPrivateKey().toString(16));
 
         } catch (Exception e) {
             this.authenticated = false;
             System.out.println("Can't load the wallet. " + e.getMessage());
-            System.out.println("Password: " + password);
+//            System.out.println("Password: " + password);
             System.out.println("Wallet Path: " + walletpath);
         }
     }
@@ -220,7 +205,7 @@ public class Blockchain {
         log.info("Deploying PasswordsBank contract.");
 
         PasswordsBank passwordsBank = PasswordsBank
-                .deploy(this.connection, this.credentials, contractGasProvider).send();
+                .deploy(this.connection, this.credentials, contractGasProvider).sendAsync().get();
 
         String contractAddress = passwordsBank.getContractAddress();
 
@@ -230,6 +215,7 @@ public class Blockchain {
 
         return contractAddress;
     }
+
 
 
 
@@ -266,18 +252,12 @@ public class Blockchain {
 
 
 
-    public TransactionReceipt savePasswordsToBlockchain(String resourceType, String resource, String login, String password)
+    public CompletableFuture<TransactionReceipt> savePasswordsToBlockchain(String resourceType, String resource, String login, String password)
             throws Exception
     {
         log.info("Save passwords to blockchain.");
-        TransactionReceipt txReceipt = this.passwordsBank.addNewPassword(resourceType, resource, login, password).send();
-
-        log.info("Transaction Receipt.");
-        log.info("Gas Used: " + txReceipt.getGasUsed().toString(10));
-
-        this.printBallance();
-
-        return txReceipt;
+        CompletableFuture<TransactionReceipt> transaction = this.passwordsBank.addNewPassword(resourceType, resource, login, password).sendAsync();
+        return transaction;
     }
 
 

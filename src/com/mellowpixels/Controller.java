@@ -9,6 +9,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.WindowEvent;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Random;
 
@@ -20,6 +22,12 @@ public class Controller {
     @FXML
     public Label ballanceLabel;
     @FXML
+    public Label statusLabel;
+    @FXML
+    public Label addressLabel;
+    @FXML
+    public Label networkLabel;
+    @FXML
     public TextField resourceType;
     @FXML
     public TextField resource;
@@ -29,8 +37,6 @@ public class Controller {
     public PasswordField password;
     @FXML
     public TextField passwordText;
-    @FXML
-    public Group newCredentialsWrapper;
     @FXML
     public Button generatePassButton;
     @FXML
@@ -78,16 +84,34 @@ public class Controller {
         try{
             bc.connect();
             this.ballanceLabel.setText("BALLANCE: " + bc.getBallance() + " ETH");
+            this.addressLabel.setText("ADDRESS: " + bc.credentials.getAddress());
+
         } catch (Exception e) {
             System.out.println("Can't connect to blockchain");
         }
 
 
+        /*try {
+            bc.deployContract();
+        } catch (Exception e) {
+            System.out.println("Unable to deploy contract" + e.getMessage());
+        }*/
+
+
         try{
-            bc.loadContract("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a");
+//            bc.loadContract("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a");
+            bc.loadContract("0xcc73ed5442e5de44fd40c4624684b8bbd94616d4");
         } catch (Exception e) {
             System.out.println("Can't load Contract.");
         }
+
+
+
+        /*try {
+            bc.createNewPasswordBankAccount();
+        } catch (Exception e) {
+            System.out.println("Unable to crete new account" + e.getMessage());
+        }*/
 
 
         try{
@@ -100,16 +124,36 @@ public class Controller {
 
 
 
+    public void showPendingTx(Transaction tx){
+        System.out.println("Pending transactions:");
+        System.out.println("Hash: " + tx.getHash());
+        System.out.println("Gas: " + tx.getGasPrice());
+    }
+
+
+
 
     public void updateCredentialsRecords(JSONArray credentialsList) {
 
+        this.passwordsTable.getItems().removeAll();
+
         for(int i = 0; i < credentialsList.size(); i++) {
             JSONObject jo = (JSONObject)credentialsList.get(i);
-            this.passwordsTable.getItems().add(new CredentialsRecord(
-                    jo.get("resourceType").toString(),
-                    jo.get("resource").toString(),
-                    jo.get("login").toString(),
-                    jo.get("password").toString()));
+
+            try {
+                CredentialsRecord record = this.decryptCredentialsRecord(
+                        jo.get("resourceType").toString(),
+                        jo.get("resource").toString(),
+                        jo.get("login").toString(),
+                        jo.get("password").toString());
+
+                if(record.equals(null)) continue;
+
+                this.passwordsTable.getItems().add(record);
+
+            } catch (Exception e) {
+                System.out.println("Unable to decrypt credentials");
+            }
         }
 
     }
@@ -131,21 +175,29 @@ public class Controller {
                         login.getText(),
                         password.getText());
 
-    /*    System.out.println("" + resourceType.getText() + " - " + enc.getResourceType());
+        System.out.println("" + resourceType.getText() + " - " + enc.getResourceType());
         System.out.println("" + resource.getText() + " - " + enc.getResource());
         System.out.println("" + login.getText() + " - " + enc.getLogin());
-        System.out.println("" + password.getText() + " - " + enc.getPassword());*/
+        System.out.println("" + password.getText() + " - " + enc.getPassword());
 
         try {
-            blockchain.savePasswordsToBlockchain(
-                    enc.getResourceType(),
-                    enc.getResource(),
-                    enc.getLogin(),
-                    enc.getPassword());
+            this.statusLabel.setText("Saving to Blockchain. Pending...");
+            String tx = blockchain.savePasswordsToBlockchain(enc.getResourceType(), enc.getResource(), enc.getLogin(), enc.getPassword())
+                .thenAccept(txReceipt -> this.submitCredentialsSusccess(txReceipt))
+                .exceptionally(txReceipt -> this.submitCredentialsException(txReceipt))
+                .toString();
+            System.out.println("TX --> " + tx);
         } catch (Exception e) {
             System.out.println("Can't save password to blockchain" + e.getMessage());
         }
+    }
 
+
+
+    public void submitCredentialsSusccess(TransactionReceipt txReceipt) {
+        System.out.println("Transaction Receipt. " + txReceipt.toString());
+        System.out.println("Gas Used: " + txReceipt.getGasUsed().toString(10));
+        this.statusLabel.setText("Success. Gas Used " + txReceipt.getGasUsed().toString(10));
 
         try{
             JSONArray credentialsData = blockchain.fetchPasswordsFromBlockchain();
@@ -153,6 +205,17 @@ public class Controller {
         } catch (Exception e) {
             System.out.println("Can't fetch passwords.");
         }
+    }
+
+
+
+    public Void submitCredentialsException(Throwable txReceipt) {
+        this.statusLabel.setText("Transaction unsuccessful.");
+
+        System.out.println("Transaction unsuccessful.");
+        System.out.println(txReceipt.toString());
+
+        return null;
     }
 
 
@@ -194,18 +257,42 @@ public class Controller {
     private CredentialsRecord encryptCredentialsRecord(String resourceType, String resource, String login, String password)
             throws Exception
     {
-        Encryption enc = new Encryption(blockchain.credentials.getEcKeyPair().getPrivateKey().toString().substring(0, 16));
+        Cryptograph crp = new Cryptograph(blockchain.credentials.getEcKeyPair().getPrivateKey().toString());
 
         try {
             return new CredentialsRecord(
-                    enc.encrypt(resourceType),
-                    enc.encrypt(resource),
-                    enc.encrypt(login),
-                    enc.encrypt(password));
+                    crp.encrypt(resourceType),
+                    crp.encrypt(resource),
+                    crp.encrypt(login),
+                    crp.encrypt(password));
         } catch (Exception e) {
-            System.out.println("Can't encrypt credentials"+e.getMessage());
+            System.out.println("Can't encrypt credentials "+e.getMessage());
             return null;
         }
+    }
+
+
+
+    private CredentialsRecord decryptCredentialsRecord(String resourceType, String resource, String login, String password)
+            throws Exception
+    {
+        Cryptograph crp = new Cryptograph(blockchain.credentials.getEcKeyPair().getPrivateKey().toString());
+
+        CredentialsRecord decryptedrecord = null;
+
+        try {
+            decryptedrecord = new CredentialsRecord(
+                    crp.decrypt(resourceType),
+                    crp.decrypt(resource),
+                    crp.decrypt(login),
+                    crp.decrypt(password));
+            System.out.println("Successfully decrypted ");
+
+        } catch (Exception e) {
+            System.out.println("Can't decrypt credentials "+e.getMessage());
+        }
+
+        return decryptedrecord;
     }
 
 

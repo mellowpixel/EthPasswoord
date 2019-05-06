@@ -32,6 +32,7 @@ public class LoginController {
                 accessDeniedLabel.setVisible(false);
             }
         });
+
     }
 
 
