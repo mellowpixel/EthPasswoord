@@ -27,8 +27,8 @@
     </columnConstraints>
     <padding><Insets top="20" bottom="20" left="20" right="20"></Insets></padding>
 
-    <Label GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="10" GridPane.halignment="CENTER" styleClass="scene_title">
-        <text>Add credentials.</text>
+    <Label fx:id="ballanceLabel" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="10" GridPane.halignment="LEFT" styleClass="scene_title">
+        <text>BALLANCE: </text>
     </Label>
 
     <Separator GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="10"></Separator>

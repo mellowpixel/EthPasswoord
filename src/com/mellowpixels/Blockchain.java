@@ -23,6 +23,7 @@ import java.util.ArrayList;
 public class Blockchain {
     private static final Logger log = LoggerFactory.getLogger(Blockchain.class);
     private String etherAPIEndpoint = "https://ropsten.infura.io/v3/6360239c11f64a1599fbf9655c4f0d96";
+//    private String etherAPIEndpoint = null;
     private Web3j connection = null;
     public  Credentials credentials = null;
     private boolean authenticated = false;
@@ -128,6 +129,20 @@ public class Blockchain {
         BigDecimal eth = Convert.fromWei(String.valueOf(wei), Convert.Unit.ETHER);
 
         System.out.println("The account ballance is: " + String.valueOf(eth) + " ETH / " + String.valueOf(wei) + " wei");
+    }
+
+
+
+
+    public String getBallance()
+            throws Exception
+    {
+        BigInteger wei = this.connection.ethGetBalance(this.credentials.getAddress(), DefaultBlockParameterName.LATEST)
+                .sendAsync().get().getBalance();
+
+        BigDecimal eth = Convert.fromWei(String.valueOf(wei), Convert.Unit.ETHER);
+
+        return String.valueOf(eth);
     }
 
 

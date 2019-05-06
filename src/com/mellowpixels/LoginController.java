@@ -51,7 +51,7 @@ public class LoginController {
         if(this.blockchain.isAuthenticated()) {
             this.password.setText(null);
             this.accessDeniedLabel.setVisible(false);
-            Controller.connectAndSync();
+            Sys.getInstance().mainController.connectAndSync();
             PasswBankGUI.window.setScene(PasswBankGUI.mainScene);
         } else {
             this.accessDeniedLabel.setVisible(true);

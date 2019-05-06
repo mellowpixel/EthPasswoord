@@ -7,6 +7,8 @@ import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.WindowEvent;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.util.Random;
 
@@ -15,6 +17,8 @@ public class Controller {
 
     Blockchain blockchain = Sys.getInstance().blockchain;
 
+    @FXML
+    public Label ballanceLabel;
     @FXML
     public TextField resourceType;
     @FXML
@@ -39,6 +43,7 @@ public class Controller {
 
 
     public Controller () {
+        Sys.getInstance().mainController = this;
     }
 
 
@@ -63,46 +68,91 @@ public class Controller {
         this.passwordsTable.getColumns().add(login);
         this.passwordsTable.getColumns().add(password);
 
-        this.passwordsTable.getItems().add(new CredentialsRecord("Gmail", "http://gmail.com", "coder", "password1"));
-        this.passwordsTable.getItems().add(new CredentialsRecord("Facebook", "http://facebook.com", "dimitry@example.com", "TopSecret*"));
-        this.passwordsTable.getItems().add(new CredentialsRecord("My Website CMS", "http://coder.com/wp_admin", "admin", "admin"));
     }
 
 
 
-    public static void connectAndSync() {
+    public void connectAndSync() {
+        Blockchain bc = Sys.getInstance().blockchain;
+
         try{
-            Sys.getInstance().blockchain.connect();
+            bc.connect();
+            this.ballanceLabel.setText("BALLANCE: " + bc.getBallance() + " ETH");
         } catch (Exception e) {
             System.out.println("Can't connect to blockchain");
         }
 
 
         try{
-            Sys.getInstance().blockchain.loadContract("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a");
+            bc.loadContract("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a");
         } catch (Exception e) {
-            System.out.println("Can't fetch passwords.");
+            System.out.println("Can't load Contract.");
         }
 
 
         try{
-            Sys.getInstance().blockchain.fetchPasswordsFromBlockchain();
+            JSONArray credentialsData = bc.fetchPasswordsFromBlockchain();
+            this.updateCredentialsRecords(credentialsData);
         } catch (Exception e) {
             System.out.println("Can't fetch passwords.");
         }
     }
 
 
+
+
+    public void updateCredentialsRecords(JSONArray credentialsList) {
+
+        for(int i = 0; i < credentialsList.size(); i++) {
+            JSONObject jo = (JSONObject)credentialsList.get(i);
+            this.passwordsTable.getItems().add(new CredentialsRecord(
+                    jo.get("resourceType").toString(),
+                    jo.get("resource").toString(),
+                    jo.get("login").toString(),
+                    jo.get("password").toString()));
+        }
+
+    }
+
+
+
+
     @FXML
-    public void submitNewCredentials() {
+    public void submitNewCredentials()
+            throws Exception
+    {
         this.maskPassword();
         System.out.println("Saving new credentials record.");
 
-        System.out.println("" + resourceType.getText());
-        System.out.println("" + resource.getText());
-        System.out.println("" + login.getText());
-        System.out.println("" + password.getText());
+        CredentialsRecord enc =
+                this.encryptCredentialsRecord(
+                        resourceType.getText(),
+                        resource.getText(),
+                        login.getText(),
+                        password.getText());
 
+    /*    System.out.println("" + resourceType.getText() + " - " + enc.getResourceType());
+        System.out.println("" + resource.getText() + " - " + enc.getResource());
+        System.out.println("" + login.getText() + " - " + enc.getLogin());
+        System.out.println("" + password.getText() + " - " + enc.getPassword());*/
+
+        try {
+            blockchain.savePasswordsToBlockchain(
+                    enc.getResourceType(),
+                    enc.getResource(),
+                    enc.getLogin(),
+                    enc.getPassword());
+        } catch (Exception e) {
+            System.out.println("Can't save password to blockchain" + e.getMessage());
+        }
+
+
+        try{
+            JSONArray credentialsData = blockchain.fetchPasswordsFromBlockchain();
+            this.updateCredentialsRecords(credentialsData);
+        } catch (Exception e) {
+            System.out.println("Can't fetch passwords.");
+        }
     }
 
 
@@ -136,13 +186,29 @@ public class Controller {
                 maskPassword();
             }
         });
-        /*this.passwordText.setOnKeyTyped(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                maskPassword();
-            }
-        });*/
     }
+
+
+
+
+    private CredentialsRecord encryptCredentialsRecord(String resourceType, String resource, String login, String password)
+            throws Exception
+    {
+        Encryption enc = new Encryption(blockchain.credentials.getEcKeyPair().getPrivateKey().toString().substring(0, 16));
+
+        try {
+            return new CredentialsRecord(
+                    enc.encrypt(resourceType),
+                    enc.encrypt(resource),
+                    enc.encrypt(login),
+                    enc.encrypt(password));
+        } catch (Exception e) {
+            System.out.println("Can't encrypt credentials"+e.getMessage());
+            return null;
+        }
+    }
+
+
 
 
     private void maskPassword() {
