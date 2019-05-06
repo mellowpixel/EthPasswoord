@@ -4,3 +4,13 @@
     -fx-font-family: 'sans-serif';
     -fx-font-weight: 900;
 }
+
+.error_title {
+    -fx-font-size: 1em;
+    -fx-text-fill: #d33;
+    -fx-font-family: 'sans-serif';
+    -fx-font-weight: 900;
+}
+
+
+

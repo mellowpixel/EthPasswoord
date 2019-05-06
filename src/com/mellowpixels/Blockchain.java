@@ -22,9 +22,10 @@ import java.util.ArrayList;
 
 public class Blockchain {
     private static final Logger log = LoggerFactory.getLogger(Blockchain.class);
-    private String etherAPIEndpoint = null;
+    private String etherAPIEndpoint = "https://ropsten.infura.io/v3/6360239c11f64a1599fbf9655c4f0d96";
     private Web3j connection = null;
-    private Credentials credentials = null;
+    public  Credentials credentials = null;
+    private boolean authenticated = false;
     private File walletFile = null;
     private PasswordsBank passwordsBank = null;
     private ContractGasProvider contractGasProvider = new ContractGasProvider() {
@@ -69,7 +70,6 @@ public class Blockchain {
 //        String walletDir = "/Users/coder/Library/Ethereum/keystore/";
         String password = "Sp2k68s151";
         String walletDir = "/Users/coder/CODING/Etherium/node/wallet/";
-        app.etherAPIEndpoint = "https://ropsten.infura.io/v3/6360239c11f64a1599fbf9655c4f0d96";
 
         app.getOrMakeWallet(password, walletDir);
         app.getCredentials(password);
@@ -159,15 +159,24 @@ public class Blockchain {
 
         try{
             this.credentials = WalletUtils.loadCredentials(password, walletpath);
+            this.authenticated = true;
             System.out.println("Address: " + credentials.getAddress());
             System.out.println("Public: " + credentials.getEcKeyPair().getPublicKey().toString(16));
             System.out.println("Private: " + credentials.getEcKeyPair().getPrivateKey().toString(16));
 
         } catch (Exception e) {
+            this.authenticated = false;
             System.out.println("Can't load the wallet. " + e.getMessage());
             System.out.println("Password: " + password);
             System.out.println("Wallet Path: " + walletpath);
         }
+    }
+
+
+
+
+    public boolean isAuthenticated() {
+        return this.authenticated;
     }
 
 

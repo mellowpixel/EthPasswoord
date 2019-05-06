@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.geometry.Insets?>
+<GridPane fx:controller="com.mellowpixels.LoginController"
+          xmlns:fx="http://javafx.com/fxml"
+          alignment="TOP_CENTER" hgap="10" vgap="10" gridLinesVisible="false">
+
+    <padding><Insets top="250" bottom="20" left="20" right="20"></Insets></padding>
+
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+    </columnConstraints>
+
+
+    <Label GridPane.columnIndex="0"
+           GridPane.rowIndex="0"
+           GridPane.halignment="CENTER"
+           alignment="CENTER"
+           styleClass="scene_title">MASTER PASSWORD
+    </Label>
+
+    <Separator GridPane.rowIndex="1" GridPane.columnIndex="0"></Separator>
+
+    <PasswordField fx:id="password" onAction="#signIn" GridPane.rowIndex="3" GridPane.columnIndex="0" alignment="CENTER">
+        <promptText>Password</promptText>
+    </PasswordField>
+
+    <Label fx:id="accessDeniedLabel" GridPane.columnIndex="0"
+           GridPane.rowIndex="4"
+           GridPane.halignment="CENTER"
+           alignment="CENTER"
+           visible="false"
+           styleClass="error_title">ACCESS DENIED
+    </Label>
+
+</GridPane>
