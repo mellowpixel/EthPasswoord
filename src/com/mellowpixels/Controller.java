@@ -16,6 +16,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.response.EmptyTransactionReceipt;
 import org.web3j.utils.Convert;
 
+import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -131,6 +132,7 @@ public class Controller {
         try{
             JSONArray credentialsData = bc.fetchPasswordsFromBlockchain();
             this.updateCredentialsRecords(credentialsData);
+
         } catch (Exception e) {
             System.out.println("Can't fetch passwords.");
             sys.log("Can't fetch passwords.");
@@ -145,6 +147,8 @@ public class Controller {
     public void updateCredentialsRecords(JSONArray credentialsList) {
 
         this.passwordsTable.getItems().removeAll();
+
+        this.saveCache(credentialsList.toJSONString());
 
         for(int i = 0; i < credentialsList.size(); i++) {
             JSONObject jo = (JSONObject)credentialsList.get(i);
@@ -194,7 +198,7 @@ public class Controller {
 
         this.passwordsTable.getItems().add(tableRow);
 
-        this.saveCache();
+
 
         try {
             this.statusLabel.setText("Saving to Blockchain. Pending...");
@@ -237,7 +241,8 @@ public class Controller {
                                 .ethGetTransactionReceipt(txHash).send().getTransactionReceipt();
 
                         System.out.println("Transaction executed after "+timeElapsed+". "+txReceipt.get().getStatus());
-                        Sys.log("Transaction executed after "+timeElapsed+". "+txReceipt.get().getStatus());
+                        String status = txReceipt.get().getStatus();
+                        Sys.log("Transaction executed after "+timeElapsed+". " + (status.equals("0x1") ? "Success" : status));
                         Sys.removeTransaction(txHash, timestamp);
 
                     } catch(Exception e) {
@@ -283,8 +288,19 @@ public class Controller {
 
 
 
-    private void saveCache() {
+    private void saveCache(String data) {
+        Cryptograph cr = new Cryptograph(blockchain.credentials.getEcKeyPair().getPrivateKey().toString());
 
+        try {
+            FileOutputStream fos = new FileOutputStream("./cache/c"+(new Date().getTime()));
+
+            fos.write(Base64.getMimeDecoder().decode(cr.encrypt(data)));
+
+            fos.close();
+
+        } catch (Exception e) {
+            System.out.println("Unable to save cache. "+ e.getMessage());
+        }
     }
 
 
@@ -414,7 +430,7 @@ public class Controller {
 
     public void printLogs(){
         String output = "";
-        ArrayList<String> logs = sys.getLogs(6 - this.pendingTrx.size());
+        ArrayList<String> logs = sys.getLogs(4 - this.pendingTrx.size());
 
         for (String tx : this.pendingTrx) {
             output += tx + "\n";

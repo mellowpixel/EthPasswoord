@@ -31,6 +31,16 @@ class Cryptograph {
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
+
+    public byte[] encryptToBytesArray(String pass) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, getKey());
+        byte[] encrypted = cipher.doFinal(pass.getBytes("UTF-8"));
+
+        return encrypted;
+    }
+
+
     public String decrypt(String encryptedStr) throws Exception {
         byte[] encrypted = Base64.getDecoder().decode(encryptedStr);
         Cipher cipher = Cipher.getInstance("AES");
