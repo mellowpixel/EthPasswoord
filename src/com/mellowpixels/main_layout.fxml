@@ -32,7 +32,7 @@
     </Label>
 
     <Label fx:id="addressLabel" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="5" GridPane.halignment="LEFT" styleClass="scene_title">
-        <text>BALLANCE: </text>
+        <text>ADDRESS: </text>
     </Label>
 
     <Button fx:id="refreshButton" onAction="#refreshAll" GridPane.rowIndex="0" GridPane.columnIndex="8" GridPane.columnSpan="2"

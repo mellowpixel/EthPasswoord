@@ -10,15 +10,20 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.WindowEvent;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.web3j.protocol.core.methods.response.EthTransaction;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.response.EmptyTransactionReceipt;
 import org.web3j.utils.Convert;
 
-import java.io.FileOutputStream;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,6 +33,9 @@ public class Controller {
     Blockchain blockchain = Sys.getInstance().blockchain;
     public Sys sys = Sys.getInstance();
     public ArrayList<String> pendingTrx;
+    public boolean isOffline = false;
+    public boolean connecting = false;
+    public Timer connectionTimer = new Timer();
 
     @FXML
     public Label ballanceLabel;
@@ -133,11 +141,141 @@ public class Controller {
             JSONArray credentialsData = bc.fetchPasswordsFromBlockchain();
             this.updateCredentialsRecords(credentialsData);
 
+            this.isOffline = false;
+            this.connecting = false;
+            this.connectionTimer.cancel();
+            this.connectionTimer.purge();
         } catch (Exception e) {
-            System.out.println("Can't fetch passwords.");
-            sys.log("Can't fetch passwords.");
+            String msg = "Can't fetch data from blockchain";
+            System.out.println(msg);
+            sys.log(msg);
+            this.isOffline = true;
+        }
+
+
+        if(this.isOffline && !this.connecting) {
+
+            this.connecting = true;
+
+            try {
+                JSONArray credentialsData = this.loadFromCache();
+                this.updateCredentialsRecords(credentialsData);
+                System.out.println("Offline Mode. Loading from cache.");
+                sys.log("Offline Mode. Loading from cache. ");
+            } catch (Exception e) {
+                System.out.println("Unable to load from cache. " + e.getMessage());
+            }
+
+            this.reconnect();
         }
     }
+
+
+
+
+
+    private void reconnect() {
+        final Controller self = this;
+        connectionTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    System.out.println("Trying to connect...");
+                    self.connectAndSync();
+                });
+            }
+        }, 1000, 2000);
+    }
+
+
+
+
+
+    private void saveCache(String data) {
+        Cryptograph cr = new Cryptograph(blockchain.credentials.getEcKeyPair().getPrivateKey().toString());
+
+        try {
+            FileOutputStream fos = new FileOutputStream("./cache/cache"+(new Date().getTime()));
+
+            fos.write(Base64.getMimeDecoder().decode(cr.encrypt(data)));
+
+            fos.close();
+
+        } catch (Exception e) {
+            System.out.println("Unable to save cache. "+ e.getMessage());
+        }
+    }
+
+
+
+
+
+
+
+    public JSONArray loadFromCache() {
+        Cryptograph crypt = new Cryptograph(blockchain.credentials.getEcKeyPair().getPrivateKey().toString());
+        JSONArray output = null;
+        byte[] cachContent;
+        String fpath;
+
+        ArrayList<String> cachePaths = this.getCacheFilesNames();
+
+        System.out.println(cachePaths);
+
+        for(int i = 0; i < cachePaths.size(); i++ ){
+
+            fpath = cachePaths.get(i);
+
+            try {
+                System.out.println("Reading cache file " + fpath);
+                Path path = FileSystems.getDefault().getPath(fpath);
+                cachContent = Files.readAllBytes(path);
+                output = (JSONArray) new JSONParser().parse(crypt.decryptBytes(cachContent));
+
+                break;
+            } catch(Exception e) {
+                System.out.println("Cant't read file. " + e.getMessage());
+                return null;
+            }
+        }
+
+        return output;
+    }
+
+
+
+
+
+
+
+    public ArrayList<String> getCacheFilesNames() {
+        ArrayList<String> cacheFileNames = new ArrayList<>();
+        File[] files = null;
+        String dir = "./cache";
+
+        try {
+            files = new File(dir).listFiles();
+        } catch(Exception e) {
+            System.out.println("Unable to get cache files. " + e.getMessage());
+        }
+
+        if(files == null || files.length == 0)
+            return null;
+
+        for( final File file : files){
+            if( ! ( file.isFile() && file.getName().contains("cache") ))
+                continue;
+
+            cacheFileNames.add(dir + "/" + file.getName());
+        }
+
+        Comparator c = Comparator.reverseOrder();
+        Collections.sort(cacheFileNames, c);
+
+        return cacheFileNames;
+    }
+
+
 
 
 
@@ -148,7 +286,8 @@ public class Controller {
 
         this.passwordsTable.getItems().removeAll();
 
-        this.saveCache(credentialsList.toJSONString());
+        if(!this.isOffline)
+            this.saveCache(credentialsList.toJSONString());
 
         for(int i = 0; i < credentialsList.size(); i++) {
             JSONObject jo = (JSONObject)credentialsList.get(i);
@@ -281,25 +420,6 @@ public class Controller {
             System.out.println("Gas used:  "+wei.toString() + " Gp:"+gp);
         } catch (Exception e) {
             System.out.println("No Block number." + e.getMessage());
-        }
-    }
-
-
-
-
-
-    private void saveCache(String data) {
-        Cryptograph cr = new Cryptograph(blockchain.credentials.getEcKeyPair().getPrivateKey().toString());
-
-        try {
-            FileOutputStream fos = new FileOutputStream("./cache/c"+(new Date().getTime()));
-
-            fos.write(Base64.getMimeDecoder().decode(cr.encrypt(data)));
-
-            fos.close();
-
-        } catch (Exception e) {
-            System.out.println("Unable to save cache. "+ e.getMessage());
         }
     }
 

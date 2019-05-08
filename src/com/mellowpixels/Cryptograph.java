@@ -51,4 +51,15 @@ class Cryptograph {
 
         return new String(cipher.doFinal(encrypted));
     }
+
+
+    public String decryptBytes(byte[] encrypted) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, getKey());
+
+        String de = new String(cipher.doFinal(encrypted));
+//        System.out.println("Decrypting -->" + encryptedStr + "  -->  " + de);
+
+        return new String(cipher.doFinal(encrypted));
+    }
 }
