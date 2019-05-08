@@ -284,7 +284,7 @@ public class Controller {
 
     public void updateCredentialsRecords(JSONArray credentialsList) {
 
-        this.passwordsTable.getItems().removeAll();
+        this.passwordsTable.getItems().clear();
 
         if(!this.isOffline)
             this.saveCache(credentialsList.toJSONString());
@@ -340,13 +340,15 @@ public class Controller {
 
 
         try {
-            this.statusLabel.setText("Saving to Blockchain. Pending...");
-
             TransactionReceipt txr = blockchain.passwordsBank.addNewPassword(enc.getResourceType(), enc.getResource(), enc.getLogin(), enc.getPassword()).send();
             System.out.println("Transaction Hash. " + txr.getTransactionHash());
-            String txHash = txr.getTransactionHash();
-
             Sys.addTransaction(txr.getTransactionHash(), BigInteger.valueOf(System.currentTimeMillis()));
+
+            this.resourceType.clear();
+            this.resource.clear();
+            this.login.clear();
+            this.password.clear();
+            this.passwordText.clear();
 
         } catch (Exception e) {
             System.out.println("Can't save password to blockchain" + e.getMessage());
@@ -404,23 +406,7 @@ public class Controller {
 
 
     public void refreshAll() throws Exception {
-
-        String txHash = "0xb184d83ebb00dd860695316490df9f0e0859905f16013072c70ff1b09b15447f";
-//        String txHash = "0x208e521d78df08684cb423db28d912a2444dc5ed506536d0514f9022b1867f1f";
-
-
-        try {
-            Optional<TransactionReceipt> txReceipt =
-                    blockchain.connection.ethGetTransactionReceipt(txHash).send().getTransactionReceipt();
-
-//            BigDecimal eth = Convert.fromWei(String.valueOf(wei), Convert.Unit.ETHER);
-            BigInteger gp = blockchain.connection.ethGasPrice().send().getGasPrice();
-            BigInteger wei = txReceipt.get().getGasUsed();
-
-            System.out.println("Gas used:  "+wei.toString() + " Gp:"+gp);
-        } catch (Exception e) {
-            System.out.println("No Block number." + e.getMessage());
-        }
+        this.connectAndSync();
     }
 
 
@@ -550,7 +536,7 @@ public class Controller {
 
     public void printLogs(){
         String output = "";
-        ArrayList<String> logs = sys.getLogs(4 - this.pendingTrx.size());
+        ArrayList<String> logs = Sys.getInstance().getLogs(4 - this.pendingTrx.size());
 
         for (String tx : this.pendingTrx) {
             output += tx + "\n";

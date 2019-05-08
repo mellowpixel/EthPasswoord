@@ -41,22 +41,22 @@ public class Blockchain {
     private ContractGasProvider contractGasProvider = new ContractGasProvider() {
         @Override
         public BigInteger getGasPrice(String contractFunc) {
-            return BigInteger.valueOf(600000L);
+            return Convert.toWei("8", Convert.Unit.GWEI).toBigInteger();
         }
 
         @Override
         public BigInteger getGasPrice() {
-            return BigInteger.valueOf(600000L);
+            return Convert.toWei("8", Convert.Unit.GWEI).toBigInteger();
         }
 
         @Override
         public BigInteger getGasLimit(String contractFunc) {
-            return BigInteger.valueOf(3000000L);
+            return BigInteger.valueOf(7000000L);
         }
 
         @Override
         public BigInteger getGasLimit() {
-            return BigInteger.valueOf(3000000L);
+            return BigInteger.valueOf(7000000L);
         }
     };
 

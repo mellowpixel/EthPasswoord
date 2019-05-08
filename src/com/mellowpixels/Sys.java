@@ -44,7 +44,7 @@ public class Sys {
         ArrayList<String> output = new ArrayList<>();
 
         for (int i = Sys.logs.size()-1; i >= 0; i--) {
-            if(i < Sys.logs.size()){
+            if(Sys.logs.size() <= topNum){
                 output.add(Sys.logs.get(i));
             }
         }

@@ -13,8 +13,8 @@
 }
 
 .status_text {
-    -fx-font-size: 0.9em;
-    -fx-text-fill: #287C1B;
+    -fx-font-size: 0.8em;
+    -fx-text-fill: #555555;
     -fx-font-family: 'sans-serif';
     -fx-font-weight: 900;
 }
