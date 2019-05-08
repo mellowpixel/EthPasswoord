@@ -1,20 +1,27 @@
 .scene_title {
     -fx-font-size: 0.9em;
-    -fx-text-fill: #58a;
+    -fx-text-fill: #7405A4;
+    -fx-font-family: 'sans-serif';
+    -fx-font-weight: 900;
+}
+
+.master_password {
+    -fx-font-size: 1.6em;
+    -fx-text-fill: #5C5C9E;
     -fx-font-family: 'sans-serif';
     -fx-font-weight: 900;
 }
 
 .status_text {
     -fx-font-size: 0.9em;
-    -fx-text-fill: #5a8;
+    -fx-text-fill: #287C1B;
     -fx-font-family: 'sans-serif';
     -fx-font-weight: 900;
 }
 
 .error_title {
     -fx-font-size: 1em;
-    -fx-text-fill: #d33;
+    -fx-text-fill: #CB0067;
     -fx-font-family: 'sans-serif';
     -fx-font-weight: 900;
 }

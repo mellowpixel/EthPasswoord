@@ -24,8 +24,6 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        System.out.println("Login Controller initialized");
-
         this.password.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {

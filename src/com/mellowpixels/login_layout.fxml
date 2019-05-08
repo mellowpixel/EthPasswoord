@@ -24,7 +24,7 @@
            GridPane.rowIndex="0"
            GridPane.halignment="CENTER"
            alignment="CENTER"
-           styleClass="scene_title">MASTER PASSWORD
+           styleClass="master_password">MASTER PASSWORD
     </Label>
 
     <Separator GridPane.rowIndex="1" GridPane.columnIndex="0"></Separator>

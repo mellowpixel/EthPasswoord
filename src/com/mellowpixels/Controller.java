@@ -1,5 +1,6 @@
 package com.mellowpixels;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -9,15 +10,23 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.WindowEvent;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.web3j.protocol.core.methods.response.EthTransaction;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tx.response.EmptyTransactionReceipt;
+import org.web3j.utils.Convert;
 
-import java.util.Random;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 
 public class Controller {
 
     Blockchain blockchain = Sys.getInstance().blockchain;
+    public Sys sys = Sys.getInstance();
+    public ArrayList<String> pendingTrx;
 
     @FXML
     public Label ballanceLabel;
@@ -49,7 +58,10 @@ public class Controller {
 
 
     public Controller () {
+
         Sys.getInstance().mainController = this;
+        this.pendingTrx = new ArrayList<>();
+        this.pollTransaction();
     }
 
 
@@ -88,6 +100,7 @@ public class Controller {
 
         } catch (Exception e) {
             System.out.println("Can't connect to blockchain");
+            sys.log("Can't connect to blockchain");
         }
 
 
@@ -103,6 +116,7 @@ public class Controller {
             bc.loadContract("0xcc73ed5442e5de44fd40c4624684b8bbd94616d4");
         } catch (Exception e) {
             System.out.println("Can't load Contract.");
+            sys.log("Can't load Contract.");
         }
 
 
@@ -119,16 +133,11 @@ public class Controller {
             this.updateCredentialsRecords(credentialsData);
         } catch (Exception e) {
             System.out.println("Can't fetch passwords.");
+            sys.log("Can't fetch passwords.");
         }
     }
 
 
-
-    public void showPendingTx(Transaction tx){
-        System.out.println("Pending transactions:");
-        System.out.println("Hash: " + tx.getHash());
-        System.out.println("Gas: " + tx.getGasPrice());
-    }
 
 
 
@@ -155,8 +164,8 @@ public class Controller {
                 System.out.println("Unable to decrypt credentials");
             }
         }
-
     }
+
 
 
 
@@ -167,6 +176,8 @@ public class Controller {
     {
         this.maskPassword();
         System.out.println("Saving new credentials record.");
+        sys.log("Saving new credentials record.");
+
 
         CredentialsRecord enc =
                 this.encryptCredentialsRecord(
@@ -175,48 +186,147 @@ public class Controller {
                         login.getText(),
                         password.getText());
 
-        System.out.println("" + resourceType.getText() + " - " + enc.getResourceType());
-        System.out.println("" + resource.getText() + " - " + enc.getResource());
-        System.out.println("" + login.getText() + " - " + enc.getLogin());
-        System.out.println("" + password.getText() + " - " + enc.getPassword());
+        CredentialsRecord tableRow = new CredentialsRecord(
+                resourceType.getText(),
+                resource.getText(),
+                login.getText(),
+                password.getText());
+
+        this.passwordsTable.getItems().add(tableRow);
+
+        this.saveCache();
 
         try {
             this.statusLabel.setText("Saving to Blockchain. Pending...");
-            String tx = blockchain.savePasswordsToBlockchain(enc.getResourceType(), enc.getResource(), enc.getLogin(), enc.getPassword())
-                .thenAccept(txReceipt -> this.submitCredentialsSusccess(txReceipt))
-                .exceptionally(txReceipt -> this.submitCredentialsException(txReceipt))
-                .toString();
-            System.out.println("TX --> " + tx);
+
+            TransactionReceipt txr = blockchain.passwordsBank.addNewPassword(enc.getResourceType(), enc.getResource(), enc.getLogin(), enc.getPassword()).send();
+            System.out.println("Transaction Hash. " + txr.getTransactionHash());
+            String txHash = txr.getTransactionHash();
+
+            Sys.addTransaction(txr.getTransactionHash(), BigInteger.valueOf(System.currentTimeMillis()));
+
         } catch (Exception e) {
             System.out.println("Can't save password to blockchain" + e.getMessage());
+            sys.log("Can't save password to blockchain" + e.getMessage());
         }
+
     }
 
 
 
-    public void submitCredentialsSusccess(TransactionReceipt txReceipt) {
-        System.out.println("Transaction Receipt. " + txReceipt.toString());
-        System.out.println("Gas Used: " + txReceipt.getGasUsed().toString(10));
-        this.statusLabel.setText("Success. Gas Used " + txReceipt.getGasUsed().toString(10));
 
-        try{
-            JSONArray credentialsData = blockchain.fetchPasswordsFromBlockchain();
-            this.updateCredentialsRecords(credentialsData);
+    private void pollTransaction() {
+        final Timer timer = new Timer();
+        final Controller self = this;
+
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+
+                self.pendingTrx.clear();
+
+                Map<String, BigInteger> transactions = Sys.getPendingTrx(3);
+
+                transactions.forEach((txHash, timestamp) -> {
+                    int sec = (int)(System.currentTimeMillis() - timestamp.longValue()) / 1000;
+                    int min = (int)Math.floor(sec / 60);
+                    String timeElapsed = (min >= 10 ? min : "0" + min) + "min " + (sec % 60 >= 10 ? sec % 60 : "0" + sec % 60) + "sec";
+
+                    try {
+                        Optional<TransactionReceipt> txReceipt = blockchain.connection
+                                .ethGetTransactionReceipt(txHash).send().getTransactionReceipt();
+
+                        System.out.println("Transaction executed after "+timeElapsed+". "+txReceipt.get().getStatus());
+                        Sys.log("Transaction executed after "+timeElapsed+". "+txReceipt.get().getStatus());
+                        Sys.removeTransaction(txHash, timestamp);
+
+                    } catch(Exception e) {
+                        self.pendingTrx.add("Transaction "+txHash+" "+timeElapsed+" : Pending...");
+                    }
+                });
+
+                Platform.runLater(new Runnable() {
+                    @Override public void run() {
+                        self.printLogs();
+                    }
+                });
+
+            }
+        }, 1000, 1000);
+    }
+
+
+
+
+
+    public void refreshAll() throws Exception {
+
+        String txHash = "0xb184d83ebb00dd860695316490df9f0e0859905f16013072c70ff1b09b15447f";
+//        String txHash = "0x208e521d78df08684cb423db28d912a2444dc5ed506536d0514f9022b1867f1f";
+
+
+        try {
+            Optional<TransactionReceipt> txReceipt =
+                    blockchain.connection.ethGetTransactionReceipt(txHash).send().getTransactionReceipt();
+
+//            BigDecimal eth = Convert.fromWei(String.valueOf(wei), Convert.Unit.ETHER);
+            BigInteger gp = blockchain.connection.ethGasPrice().send().getGasPrice();
+            BigInteger wei = txReceipt.get().getGasUsed();
+
+            System.out.println("Gas used:  "+wei.toString() + " Gp:"+gp);
         } catch (Exception e) {
-            System.out.println("Can't fetch passwords.");
+            System.out.println("No Block number." + e.getMessage());
         }
     }
+
+
+
+
+
+    private void saveCache() {
+
+    }
+
+
+
+
+
+
+    public void submitCredentialsSusccess(EthTransaction ethTx) {
+        System.out.println("Ethereum Tx. " + ethTx.toString());
+        System.out.println("Tx: " + ethTx.getTransaction().toString());
+        Controller self = this;
+
+        Platform.runLater(new Runnable() {
+            @Override public void run() {
+
+            }
+        });
+
+
+    }
+
+
 
 
 
     public Void submitCredentialsException(Throwable txReceipt) {
-        this.statusLabel.setText("Transaction unsuccessful.");
 
-        System.out.println("Transaction unsuccessful.");
+        System.out.println("Transaction timeout.");
         System.out.println(txReceipt.toString());
+        Controller self = this;
+
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                self.statusLabel.setText("Transaction timeout. " + txReceipt.getMessage());
+            }
+        });
 
         return null;
     }
+
+
 
 
 
@@ -254,6 +364,8 @@ public class Controller {
 
 
 
+
+
     private CredentialsRecord encryptCredentialsRecord(String resourceType, String resource, String login, String password)
             throws Exception
     {
@@ -273,6 +385,9 @@ public class Controller {
 
 
 
+
+
+
     private CredentialsRecord decryptCredentialsRecord(String resourceType, String resource, String login, String password)
             throws Exception
     {
@@ -286,7 +401,6 @@ public class Controller {
                     crp.decrypt(resource),
                     crp.decrypt(login),
                     crp.decrypt(password));
-            System.out.println("Successfully decrypted ");
 
         } catch (Exception e) {
             System.out.println("Can't decrypt credentials "+e.getMessage());
@@ -298,13 +412,34 @@ public class Controller {
 
 
 
+    public void printLogs(){
+        String output = "";
+        ArrayList<String> logs = sys.getLogs(6 - this.pendingTrx.size());
+
+        for (String tx : this.pendingTrx) {
+            output += tx + "\n";
+        }
+
+        for (String line : logs) {
+            output += line + "\n";
+        }
+
+        this.statusLabel.setText(output);
+    }
+
+
+
+
     private void maskPassword() {
         this.password.setVisible(true);
         this.passwordText.setVisible(false);
     }
 
 
+
+
     public void lockScreen() {
+        this.passwordsTable.getItems().removeAll();
         PasswBankGUI.window.setScene(PasswBankGUI.loginScene);
     }
 }

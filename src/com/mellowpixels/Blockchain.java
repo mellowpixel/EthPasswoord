@@ -6,9 +6,15 @@ import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.RemoteCall;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.tx.ChainId;
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.response.NoOpProcessor;
+import org.web3j.tx.response.TransactionReceiptProcessor;
 import org.web3j.utils.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
@@ -16,6 +22,7 @@ import org.json.simple.parser.*;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -25,22 +32,21 @@ public class Blockchain {
     private static final Logger log = LoggerFactory.getLogger(Blockchain.class);
     private String etherAPIEndpoint = "https://ropsten.infura.io/v3/6360239c11f64a1599fbf9655c4f0d96";
 //    private String etherAPIEndpoint = "http://127.0.0.1:8545";
-
-//    private String etherAPIEndpoint = null;
+    public Sys sys = Sys.getInstance();
     public Web3j connection = null;
     public  Credentials credentials = null;
     private boolean authenticated = false;
     private File walletFile = null;
-    private PasswordsBank passwordsBank = null;
+    public PasswordsBank passwordsBank = null;
     private ContractGasProvider contractGasProvider = new ContractGasProvider() {
         @Override
         public BigInteger getGasPrice(String contractFunc) {
-            return BigInteger.valueOf(200000L);
+            return BigInteger.valueOf(600000L);
         }
 
         @Override
         public BigInteger getGasPrice() {
-            return BigInteger.valueOf(200000L);
+            return BigInteger.valueOf(600000L);
         }
 
         @Override
@@ -53,6 +59,8 @@ public class Blockchain {
             return BigInteger.valueOf(3000000L);
         }
     };
+
+    public TransactionManager txManager;
 
 
     /*
@@ -88,19 +96,19 @@ public class Blockchain {
 
 
     public void connect() throws Exception {
+        TransactionReceiptProcessor txRtProc;
 
-        this.connection = this.etherAPIEndpoint == null
-                ? Web3j.build(new HttpService())
-                : Web3j.build(new HttpService(this.etherAPIEndpoint));
+        this.connection = Web3j.build(new HttpService(this.etherAPIEndpoint));
 
-        System.out.println("Connected to Ethereum client version: "
-                + this.connection
-                .web3ClientVersion()
-                .send()
-                .getWeb3ClientVersion());
+        txRtProc = new NoOpProcessor(this.connection);
+        this.txManager = new RawTransactionManager(this.connection, this.credentials, ChainId.ROPSTEN, txRtProc);
+
+        String msg = "Connected to Ethereum client version: " + this.connection.web3ClientVersion().send()
+                .getWeb3ClientVersion();
+
+        sys.log(msg);
 
         this.printBallance();
-
     }
 
 
@@ -226,7 +234,7 @@ public class Blockchain {
         this.passwordsBank =
                 PasswordsBank.load(contractAddress,
                         this.connection,
-                        this.credentials,
+                        this.txManager,
                         contractGasProvider);
 
         if(!this.passwordsBank.isValid()) {
