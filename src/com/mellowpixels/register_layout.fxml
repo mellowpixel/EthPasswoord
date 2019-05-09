@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.geometry.Insets?>
+
+<GridPane fx:id="gridPane"
+          fx:controller="com.mellowpixels.RegisterController"
+          xmlns:fx="http://javafx.com/fxml"
+          alignment="TOP_CENTER" hgap="10" vgap="10" gridLinesVisible="false">
+
+    <padding><Insets top="200" bottom="20" left="20" right="20"></Insets></padding>
+
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+    </columnConstraints>
+
+
+
+    <Label GridPane.rowIndex="0" GridPane.columnIndex="0">
+        <text>Create new keystore</text>
+    </Label>
+
+    <PasswordField fx:id="newPassword1" GridPane.rowIndex="2" GridPane.columnIndex="0">
+        <promptText>Create a new password</promptText>
+    </PasswordField>
+
+    <PasswordField fx:id="newPassword2" GridPane.rowIndex="3" GridPane.columnIndex="0">
+        <promptText>Confirm password</promptText>
+    </PasswordField>
+
+
+    <Separator GridPane.rowIndex="5" GridPane.columnIndex="0"></Separator>
+
+    <Label GridPane.rowIndex="7" GridPane.columnIndex="0">
+        <text>Select existing keystore.</text>
+    </Label>
+
+
+    <Button fx:id="browseFilesButton" onAction="#browseFiles" GridPane.rowIndex="9" GridPane.columnIndex="0">
+        <text>Browse</text>
+    </Button>
+    <PasswordField fx:id="keystorePassword" GridPane.rowIndex="10" GridPane.columnIndex="0">
+        <promptText>Keystore password</promptText>
+    </PasswordField>
+    <Label fx:id="wrongPasswordlabel" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="0">
+        <text>Wrong Password</text>
+    </Label>
+
+    <Button fx:id="nextBtn" onAction="#saveAll" alignment="CENTER" GridPane.rowIndex="13" GridPane.columnIndex="0">
+        <text>Save</text>
+    </Button>
+
+
+</GridPane>

@@ -206,6 +206,11 @@ public class Blockchain {
 
 
 
+    public void setWalletFile(File walletFile) {
+        this.walletFile = walletFile;
+    }
+
+
 
     public String deployContract()
             throws Exception
