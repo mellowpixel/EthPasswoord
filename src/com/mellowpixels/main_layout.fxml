@@ -9,6 +9,8 @@
 
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <GridPane fx:controller="com.mellowpixels.Controller"
           xmlns:fx="http://javafx.com/fxml"
           alignment="TOP_CENTER" hgap="10" vgap="10" gridLinesVisible="false">
@@ -34,6 +36,10 @@
     <Label fx:id="addressLabel" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="5" GridPane.halignment="LEFT" styleClass="scene_title">
         <text>ADDRESS: </text>
     </Label>
+
+    <Button fx:id="copyAddressButton" styleClass="copy_btn" onAction="#copyAddress" GridPane.rowIndex="1" GridPane.columnIndex="5" maxWidth="30" maxHeight="20">
+
+    </Button>
 
     <Button fx:id="refreshButton" onAction="#refreshAll" GridPane.rowIndex="0" GridPane.columnIndex="8" GridPane.columnSpan="2"
             GridPane.halignment="RIGHT">

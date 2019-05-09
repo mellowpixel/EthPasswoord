@@ -5,11 +5,13 @@ import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import java.io.File;
+
 
 public class LoginController {
 
     Blockchain blockchain;
-    String walletDir = "/Users/coder/CODING/Etherium/node/wallet/";
+    public static String keystorePath;
 
     @FXML
     public PasswordField password;
@@ -41,7 +43,7 @@ public class LoginController {
 
 
         try{
-            this.blockchain.getOrMakeWallet(masterPassword, this.walletDir);
+            blockchain.setWalletFile(new File(this.keystorePath));
             this.blockchain.getCredentials(masterPassword);
         } catch (Exception e) {
             System.out.println("Can't connect to the blockchain.");
@@ -57,5 +59,11 @@ public class LoginController {
             System.out.println("Not Authorized.");
         }
 
+    }
+
+
+    @FXML
+    public void goToRegistration() {
+        PasswBankGUI.window.setScene(PasswBankGUI.registerScene);
     }
 }

@@ -41,4 +41,13 @@
            styleClass="error_title">ACCESS DENIED
     </Label>
 
+
+    <Button fx:id="goToRegistrationBtn"
+            onAction="#goToRegistration"
+            GridPane.rowIndex="5"
+            GridPane.halignment="CENTER"
+            alignment="CENTER">
+        <text>New Account</text>
+    </Button>
+
 </GridPane>

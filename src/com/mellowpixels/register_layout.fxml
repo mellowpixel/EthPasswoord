@@ -21,39 +21,46 @@
         <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
     </columnConstraints>
 
+    <fx:define>
+        <ToggleGroup fx:id="accountType"></ToggleGroup>
+    </fx:define>
 
 
-    <Label GridPane.rowIndex="0" GridPane.columnIndex="0">
-        <text>Create new keystore</text>
+    <RadioButton fx:id="existingKeystoreRadio" onAction="#toggleSelection" selected="true" userData="existing" toggleGroup="$accountType" GridPane.rowIndex="0" GridPane.columnIndex="0">
+        <text>Select existing keystore or wallet.</text>
+    </RadioButton>
+
+    <Button fx:id="browseFilesButton" minWidth="330" onAction="#browseFiles" GridPane.rowIndex="2" GridPane.columnIndex="0">
+        <text>Browse Files</text>
+    </Button>
+    <PasswordField fx:id="keystorePassword" GridPane.rowIndex="3" GridPane.columnIndex="0">
+        <promptText>Keystore password</promptText>
+    </PasswordField>
+    <Label fx:id="wrongPasswordlabel" styleClass="error_title" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="0">
+        <text>Incorrect Password.</text>
     </Label>
-
-    <PasswordField fx:id="newPassword1" GridPane.rowIndex="2" GridPane.columnIndex="0">
-        <promptText>Create a new password</promptText>
-    </PasswordField>
-
-    <PasswordField fx:id="newPassword2" GridPane.rowIndex="3" GridPane.columnIndex="0">
-        <promptText>Confirm password</promptText>
-    </PasswordField>
 
 
     <Separator GridPane.rowIndex="5" GridPane.columnIndex="0"></Separator>
 
-    <Label GridPane.rowIndex="7" GridPane.columnIndex="0">
-        <text>Select existing keystore.</text>
-    </Label>
 
+    <RadioButton fx:id="newKeystoreRadio" onAction="#toggleSelection" userData="new" toggleGroup="$accountType" GridPane.rowIndex="7" GridPane.columnIndex="0">
+        <text>Create new keystore and wallet</text>
+    </RadioButton>
 
-    <Button fx:id="browseFilesButton" onAction="#browseFiles" GridPane.rowIndex="9" GridPane.columnIndex="0">
-        <text>Browse</text>
-    </Button>
-    <PasswordField fx:id="keystorePassword" GridPane.rowIndex="10" GridPane.columnIndex="0">
-        <promptText>Keystore password</promptText>
+    <PasswordField fx:id="newPassword1" GridPane.rowIndex="9" disable="true" GridPane.columnIndex="0">
+        <promptText>Create a new password</promptText>
     </PasswordField>
-    <Label fx:id="wrongPasswordlabel" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="0">
-        <text>Wrong Password</text>
+
+    <PasswordField fx:id="newPassword2" GridPane.rowIndex="10" disable="true" GridPane.columnIndex="0">
+        <promptText>Confirm password</promptText>
+    </PasswordField>
+
+    <Label fx:id="passNotMatchlabel" styleClass="error_title" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="0">
+        <text>Passwords don't match.</text>
     </Label>
 
-    <Button fx:id="nextBtn" onAction="#saveAll" alignment="CENTER" GridPane.rowIndex="13" GridPane.columnIndex="0">
+    <Button fx:id="nextBtn" onAction="#saveAll" minWidth="125" GridPane.halignment="CENTER" GridPane.columnSpan="1" GridPane.rowIndex="13" GridPane.columnIndex="0">
         <text>Save</text>
     </Button>
 

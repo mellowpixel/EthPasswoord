@@ -6,6 +6,9 @@ import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.WindowEvent;
 import org.json.simple.JSONArray;
@@ -17,6 +20,9 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.response.EmptyTransactionReceipt;
 import org.web3j.utils.Convert;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -35,6 +41,7 @@ public class Controller {
     public ArrayList<String> pendingTrx;
     public boolean isOffline = false;
     public boolean connecting = false;
+    public static boolean newAccount = false;
     public Timer connectionTimer = new Timer();
 
     @FXML
@@ -95,6 +102,8 @@ public class Controller {
         this.passwordsTable.getColumns().add(login);
         this.passwordsTable.getColumns().add(password);
 
+
+
     }
 
 
@@ -121,7 +130,6 @@ public class Controller {
 
 
         try{
-//            bc.loadContract("0x3bde7df5e80d93caa97866c6a5ca768efc8bf88a");
             bc.loadContract("0xcc73ed5442e5de44fd40c4624684b8bbd94616d4");
         } catch (Exception e) {
             System.out.println("Can't load Contract.");
@@ -130,23 +138,31 @@ public class Controller {
 
 
 
-        /*try {
-            bc.createNewPasswordBankAccount();
-        } catch (Exception e) {
-            System.out.println("Unable to crete new account" + e.getMessage());
-        }*/
+        if(newAccount){
+            System.out.println("Making new password account.");
+            try {
+                Sys.log("Making new password account.");
+                bc.createNewPasswordBankAccount();
+
+            } catch (Exception e) {
+                Sys.log("Unable to crete new account. " + e.getMessage());
+                System.out.println("Unable to crete new account. " + e.getMessage());
+            }
+
+            newAccount = false;
+        }
 
 
         try{
             JSONArray credentialsData = bc.fetchPasswordsFromBlockchain();
             this.updateCredentialsRecords(credentialsData);
-
+            this.resourceType.requestFocus();
             this.isOffline = false;
             this.connecting = false;
             this.connectionTimer.cancel();
             this.connectionTimer.purge();
         } catch (Exception e) {
-            String msg = "Can't fetch data from blockchain";
+            String msg = "Can't fetch data from blockchain" + e.getMessage();
             System.out.println(msg);
             sys.log(msg);
             this.isOffline = true;
@@ -184,7 +200,7 @@ public class Controller {
                     self.connectAndSync();
                 });
             }
-        }, 1000, 2000);
+        }, 1000, 5000);
     }
 
 
@@ -411,6 +427,12 @@ public class Controller {
 
 
 
+    public void copyAddress() {
+        StringSelection address = new StringSelection(blockchain.credentials.getAddress());
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+        clipboard.setContents(address, null);
+    }
 
 
 

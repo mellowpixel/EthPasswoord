@@ -55,6 +55,7 @@ public class PasswBankGUI extends Application {
             JSONObject config = (JSONObject) new JSONParser().parse(s);
 
             if(config.containsKey("wallet_path") && new File(config.get("wallet_path").toString()).isFile()) {
+                LoginController.keystorePath = config.get("wallet_path").toString();
                 window.setScene(loginScene);
             } else {
                 System.out.println("Set Scene: Register has config");

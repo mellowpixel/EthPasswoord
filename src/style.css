@@ -26,5 +26,11 @@
     -fx-font-weight: 900;
 }
 
-
+.copy_btn {
+    -fx-background-image: url("assets/clipboard.png");
+    -fx-background-size: 20 20;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-focus-color: transparent;
+}
 
